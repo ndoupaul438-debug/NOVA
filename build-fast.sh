@@ -1,7 +1,7 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 set -e
 
-SDK="$HOME/android-sdk"
+SDK="${ANDROID_HOME:-$HOME/android-sdk}"
 BT="$SDK/build-tools/36.0.0"
 PL="$SDK/platforms/android-36/android.jar"
 

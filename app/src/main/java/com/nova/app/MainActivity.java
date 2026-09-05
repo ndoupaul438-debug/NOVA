@@ -4,74 +4,138 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.*;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
 
-    private LinearLayout content;
+    LinearLayout root;
+    LinearLayout content;
+    boolean darkMode = false;
+
+    int primary = Color.rgb(37, 99, 235);
+
+    String currentTheme = "Ocean";
+
+    Map<String, int[]> themes = new LinkedHashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        buildInterface();
+
+        setupThemes();
+        buildApp();
     }
 
-    private void buildInterface() {
+    private void setupThemes() {
 
-        LinearLayout root = new LinearLayout(this);
+        themes.put("Ocean", new int[]{
+                Color.rgb(37,99,235),
+                Color.rgb(6,182,212)
+        });
+
+        themes.put("Royal Purple", new int[]{
+                Color.rgb(124,58,237),
+                Color.rgb(236,72,153)
+        });
+
+        themes.put("Emerald", new int[]{
+                Color.rgb(5,150,105),
+                Color.rgb(52,211,153)
+        });
+
+        themes.put("Sunset", new int[]{
+                Color.rgb(249,115,22),
+                Color.rgb(239,68,68)
+        });
+
+        themes.put("Crimson", new int[]{
+                Color.rgb(220,38,38),
+                Color.rgb(244,63,94)
+        });
+
+        themes.put("Cyber", new int[]{
+                Color.rgb(8,145,178),
+                Color.rgb(34,211,238)
+        });
+
+        themes.put("Midnight", new int[]{
+                Color.rgb(79,70,229),
+                Color.rgb(139,92,246)
+        });
+
+        themes.put("Aurora", new int[]{
+                Color.rgb(20,184,166),
+                Color.rgb(139,92,246)
+        });
+    }
+
+    private void buildApp() {
+
+        root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.rgb(247, 249, 252));
 
-        TextView header = new TextView(this);
-        header.setText("NOVA ✦");
-        header.setTextSize(30);
-        header.setTypeface(null, Typeface.BOLD);
-        header.setPadding(24, 30, 24, 5);
+        applyBackground();
+
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(20,24,20,15);
+
+        LinearLayout brand = new LinearLayout(this);
+        brand.setOrientation(LinearLayout.VERTICAL);
+
+        TextView logo = text("NOVA ✦", 28, true);
+        TextView tagline = text("AI • CREATE • LEARN • BUILD", 11, false);
+
+        brand.addView(logo);
+        brand.addView(tagline);
+
+        header.addView(
+                brand,
+                new LinearLayout.LayoutParams(0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,1)
+        );
+
+        Button settings = button("⚙");
+        settings.setOnClickListener(v -> showSettings());
+
+        header.addView(settings);
+
         root.addView(header);
-
-        TextView subtitle = new TextView(this);
-        subtitle.setText("Learn • Build • Create");
-        subtitle.setTextSize(16);
-        subtitle.setTextColor(Color.GRAY);
-        subtitle.setPadding(24, 0, 24, 25);
-        root.addView(subtitle);
 
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(20, 10, 20, 10);
+        content.setPadding(18,10,18,10);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(content);
 
         root.addView(
-            content,
-            new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1
-            )
+                scroll,
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        0,1)
         );
 
-        LinearLayout navigation = new LinearLayout(this);
-        navigation.setOrientation(LinearLayout.HORIZONTAL);
-        navigation.setGravity(Gravity.CENTER);
+        LinearLayout nav = new LinearLayout(this);
+        nav.setGravity(Gravity.CENTER);
 
-        addNavButton(navigation, "AI", v -> showHome());
-        addNavButton(navigation, "Learn", v ->
-            showPage("NOVA Learn", "Your AI-powered learning space.")
-        );
-        addNavButton(navigation, "Build", v ->
-            showPage("NOVA Build", "Learn coding and build projects.")
-        );
-        addNavButton(navigation, "Create", v ->
-            showPage("NOVA Create", "Turn your ideas into creative projects.")
-        );
-        addNavButton(navigation, "Profile", v ->
-            showPage("Your NOVA Profile", "Track your skills and achievements.")
-        );
+        addNav(nav,"AI",v -> showAI());
+        addNav(nav,"Build",v -> showCodingHub());
+        addNav(nav,"Learn",v -> showPage(
+                "NOVA Learn",
+                "AI tutoring, quizzes, study plans and knowledge tools."
+        ));
+        addNav(nav,"Create",v -> showCreate());
+        addNav(nav,"Profile",v -> showProfile());
 
-        root.addView(navigation);
+        root.addView(nav);
 
         setContentView(root);
 
@@ -82,101 +146,520 @@ public class MainActivity extends Activity {
 
         content.removeAllViews();
 
-        TextView title = new TextView(this);
-        title.setText("What do you want to accomplish?");
-        title.setTextSize(22);
-        title.setTypeface(null, Typeface.BOLD);
-        content.addView(title);
+        TextView welcome = text(
+                "Welcome to NOVA",
+                27,
+                true
+        );
 
-        EditText input = new EditText(this);
-        input.setHint("Ask NOVA anything...");
-        input.setPadding(20, 20, 20, 20);
-        content.addView(input);
+        content.addView(welcome);
 
-        Button ask = new Button(this);
-        ask.setText("Ask NOVA");
+        content.addView(text(
+                "Your AI-powered creation and learning workspace.",
+                16,false
+        ));
 
-        ask.setOnClickListener(v -> {
-            String question = input.getText().toString();
+        addSpace(15);
 
-            if (!question.trim().isEmpty()) {
+        EditText prompt = new EditText(this);
+        prompt.setHint("Tell M3GAN what you want to create...");
+        prompt.setPadding(20,18,20,18);
+
+        content.addView(prompt);
+
+        Button create = button("✦  Create with M3GAN");
+
+        create.setOnClickListener(v -> {
+
+            String idea = prompt.getText().toString().trim();
+
+            if(idea.isEmpty()) {
+                showAI();
+            } else {
                 showPage(
-                    "NOVA AI",
-                    "You asked:\n\n" + question +
-                    "\n\nAI engine coming next."
+                        "M3GAN",
+                        "Project request received:\n\n" +
+                        idea +
+                        "\n\nM3GAN will turn this into a project blueprint."
                 );
             }
         });
 
-        content.addView(ask);
+        content.addView(create);
 
-        addFeature("Learn", "Study smarter with your AI tutor.");
-        addFeature("Build", "Learn coding and create projects.");
-        addFeature("Create", "Create posters, presentations and more.");
-        addFeature("Challenges", "Compete, learn and showcase your skills.");
+        addSpace(15);
+
+        addCard("🤖 M3GAN",
+                "Your conversational AI for questions, coding, learning and creation.",
+                v -> showAI());
+
+        addCard("💻 Coding Hub",
+                "Build apps, games, websites, AI projects and developer tools.",
+                v -> showCodingHub());
+
+        addCard("🎨 Create Studio",
+                "Create designs, documents, presentations and digital content.",
+                v -> showCreate());
+
+        addCard("📚 Learn",
+                "Study with an AI tutor, quizzes and personalized learning.",
+                v -> showPage(
+                        "NOVA Learn",
+                        "Your personalized AI learning center."
+                ));
+
+        addCard("🚀 Projects",
+                "Manage everything you create inside NOVA.",
+                v -> showProjects());
     }
 
-    private void showPage(String titleText, String subtitleText) {
+    private void showAI() {
 
         content.removeAllViews();
 
-        TextView title = new TextView(this);
-        title.setText(titleText);
-        title.setTextSize(28);
-        title.setTypeface(null, Typeface.BOLD);
-        content.addView(title);
+        content.addView(text("M3GAN",30,true));
+        content.addView(text(
+                "Your NOVA conversational AI",
+                16,false
+        ));
 
-        TextView subtitle = new TextView(this);
-        subtitle.setText(subtitleText);
-        subtitle.setTextSize(17);
-        subtitle.setTextColor(Color.GRAY);
-        subtitle.setPadding(0, 12, 0, 30);
-        content.addView(subtitle);
+        addSpace(15);
 
-        Button back = new Button(this);
-        back.setText("← Back to NOVA");
+        TextView status = text(
+                "● M3GAN ready",
+                15,true
+        );
+
+        status.setTextColor(Color.rgb(16,185,129));
+
+        content.addView(status);
+
+        EditText message = new EditText(this);
+        message.setHint("Message M3GAN...");
+        message.setMinLines(3);
+
+        content.addView(message);
+
+        Button send = button("Send");
+
+        send.setOnClickListener(v -> {
+
+            String q = message.getText().toString().trim();
+
+            if(!q.isEmpty()) {
+
+                showPage(
+                        "M3GAN",
+                        "You:\n" + q +
+                        "\n\nM3GAN:\n" +
+                        "I'm ready to help. Connect the NOVA AI backend to enable full conversational intelligence."
+                );
+            }
+        });
+
+        content.addView(send);
+
+        addSpace(15);
+
+        addCard("💻 Coding Assistant",
+                "Ask M3GAN to create or debug code.",
+                v -> showCodingHub());
+
+        addCard("🧠 Study Assistant",
+                "Ask questions and learn step by step.",
+                v -> showPage(
+                        "M3GAN Study Mode",
+                        "Your AI tutor workspace."
+                ));
+
+        addCard("🔎 Research",
+                "Research and organize information.",
+                v -> showPage(
+                        "M3GAN Research",
+                        "Research workspace ready."
+                ));
+    }
+
+    private void showCodingHub() {
+
+        content.removeAllViews();
+
+        content.addView(text("Coding Hub",30,true));
+        content.addView(text(
+                "Create anything with M3GAN",
+                16,false
+        ));
+
+        addSpace(15);
+
+        addCard("📱 App Studio",
+                "Create Android applications.",
+                v -> createProject("Android App"));
+
+        addCard("🎮 Game Studio",
+                "Create 2D and 3D games.",
+                v -> createProject("Game"));
+
+        addCard("🌐 Website Studio",
+                "Create websites with HTML, CSS and JavaScript.",
+                v -> createProject("Website"));
+
+        addCard("⚛ Web App Studio",
+                "Build modern web applications.",
+                v -> createProject("Web App"));
+
+        addCard("🤖 AI Studio",
+                "Create AI-powered projects and agents.",
+                v -> createProject("AI Project"));
+
+        addCard("🔌 API Studio",
+                "Create backend services and APIs.",
+                v -> createProject("API"));
+
+        addCard("🐍 Python Studio",
+                "Create Python tools and automation.",
+                v -> createProject("Python Project"));
+
+        addCard("📂 Project Explorer",
+                "Open and manage your NOVA projects.",
+                v -> showProjects());
+    }
+
+    private void createProject(String type) {
+
+        content.removeAllViews();
+
+        content.addView(text(
+                "Create " + type,
+                28,true
+        ));
+
+        content.addView(text(
+                "Describe what you want M3GAN to build.",
+                16,false
+        ));
+
+        addSpace(12);
+
+        EditText idea = new EditText(this);
+        idea.setHint(
+                "Example: Create a football game with career mode..."
+        );
+        idea.setMinLines(5);
+
+        content.addView(idea);
+
+        Button generate = button("🚀 Generate Project");
+
+        generate.setOnClickListener(v -> {
+
+            String description =
+                    idea.getText().toString().trim();
+
+            if(description.isEmpty()) {
+                description = "New " + type;
+            }
+
+            showPage(
+                    "Project Blueprint",
+                    "Type: " + type +
+                    "\n\nIdea:\n" + description +
+                    "\n\nProject workspace created.\n\n" +
+                    "Next: M3GAN generates the project files."
+            );
+        });
+
+        content.addView(generate);
+
+        Button back = button("← Coding Hub");
+        back.setOnClickListener(v -> showCodingHub());
+
+        content.addView(back);
+    }
+
+    private void showCreate() {
+
+        content.removeAllViews();
+
+        content.addView(text("Create Studio",30,true));
+
+        addCard("🎨 Design",
+                "Posters, graphics, branding and UI concepts.",
+                v -> showPage("Design Studio",
+                        "Creative design workspace."));
+
+        addCard("📄 Documents",
+                "Create reports, presentations and documents.",
+                v -> showPage("Document Studio",
+                        "Document creation workspace."));
+
+        addCard("🖼 Image Studio",
+                "Create and organize visual assets.",
+                v -> showPage("Image Studio",
+                        "Image creation workspace."));
+    }
+
+    private void showProjects() {
+
+        content.removeAllViews();
+
+        content.addView(text("My Projects",30,true));
+
+        addCard("⚽ Football Game",
+                "Game project workspace.",
+                v -> showPage("Football Game",
+                        "Project files and development tools."));
+
+        addCard("🌐 My Website",
+                "Website project workspace.",
+                v -> showPage("My Website",
+                        "HTML, CSS and JavaScript workspace."));
+
+        addCard("📱 Android App",
+                "Android application workspace.",
+                v -> showPage("Android App",
+                        "Android project workspace."));
+    }
+
+    private void showProfile() {
+
+        content.removeAllViews();
+
+        content.addView(text("NOVA Profile",30,true));
+
+        addCard("🏆 Achievements",
+                "Track projects, skills and milestones.",
+                v -> showPage(
+                        "Achievements",
+                        "Your NOVA achievements will appear here."
+                ));
+
+        addCard("📊 Progress",
+                "Track learning and creation progress.",
+                v -> showPage(
+                        "Progress",
+                        "Your progress dashboard."
+                ));
+    }
+
+    private void showSettings() {
+
+        content.removeAllViews();
+
+        content.addView(text("Settings",30,true));
+
+        Button theme = button("🎨 Theme Center");
+
+        theme.setOnClickListener(v -> showThemes());
+
+        content.addView(theme);
+
+        Button dark = button(
+                darkMode ? "☀ Light Mode" : "🌙 Dark Mode"
+        );
+
+        dark.setOnClickListener(v -> {
+
+            darkMode = !darkMode;
+            applyBackground();
+            showSettings();
+        });
+
+        content.addView(dark);
+
+        addCard("🤖 M3GAN Settings",
+                "AI personality, voice and behavior.",
+                v -> showPage(
+                        "M3GAN Settings",
+                        "AI configuration center."
+                ));
+
+        addCard("🔐 Privacy & Security",
+                "Permissions, privacy and security controls.",
+                v -> showPage(
+                        "Security Center",
+                        "NOVA security controls."
+                ));
+    }
+
+    private void showThemes() {
+
+        content.removeAllViews();
+
+        content.addView(text(
+                "Theme Center",
+                30,true
+        ));
+
+        content.addView(text(
+                "Choose your NOVA experience",
+                16,false
+        ));
+
+        for(String name : themes.keySet()) {
+
+            Button b = button(
+                    name.equals(currentTheme)
+                            ? "✓ " + name
+                            : name
+            );
+
+            b.setOnClickListener(v -> {
+
+                currentTheme = name;
+
+                primary = themes.get(name)[0];
+
+                showThemes();
+            });
+
+            content.addView(b);
+        }
+
+        Button back = button("← Settings");
+        back.setOnClickListener(v -> showSettings());
+
+        content.addView(back);
+    }
+
+    private void showPage(
+            String title,
+            String description) {
+
+        content.removeAllViews();
+
+        content.addView(text(title,30,true));
+
+        addSpace(10);
+
+        content.addView(text(
+                description,
+                17,false
+        ));
+
+        addSpace(20);
+
+        Button back = button("← Home");
+
         back.setOnClickListener(v -> showHome());
 
         content.addView(back);
     }
 
-    private void addFeature(String titleText, String description) {
+    private void addCard(
+            String title,
+            String description,
+            View.OnClickListener listener) {
 
-        TextView card = new TextView(this);
+        LinearLayout card = new LinearLayout(this);
 
-        card.setText(titleText + "\n" + description);
-        card.setTextSize(17);
-        card.setPadding(18, 18, 18, 18);
-        card.setBackgroundColor(Color.WHITE);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(20,18,20,18);
 
-        LinearLayout.LayoutParams params =
-            new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            );
+        GradientDrawable bg =
+                new GradientDrawable();
 
-        params.setMargins(0, 8, 0, 8);
+        bg.setColor(
+                darkMode
+                        ? Color.rgb(30,35,45)
+                        : Color.WHITE
+        );
 
-        content.addView(card, params);
+        bg.setCornerRadius(22);
+
+        card.setBackground(bg);
+
+        TextView t = text(title,19,true);
+        TextView d = text(description,14,false);
+
+        card.addView(t);
+        card.addView(d);
+
+        card.setOnClickListener(listener);
+
+        LinearLayout.LayoutParams p =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        p.setMargins(0,7,0,7);
+
+        content.addView(card,p);
     }
 
-    private void addNavButton(
-        LinearLayout navigation,
-        String text,
-        android.view.View.OnClickListener listener
-    ) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setTextSize(11);
-        button.setOnClickListener(listener);
+    private void addNav(
+            LinearLayout nav,
+            String label,
+            View.OnClickListener listener) {
 
-        navigation.addView(
-            button,
-            new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1
-            )
+        Button b = button(label);
+        b.setTextSize(11);
+        b.setOnClickListener(listener);
+
+        nav.addView(
+                b,
+                new LinearLayout.LayoutParams(
+                        0,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1
+                )
+        );
+    }
+
+    private Button button(String value) {
+
+        Button b = new Button(this);
+
+        b.setText(value);
+        b.setAllCaps(false);
+
+        return b;
+    }
+
+    private TextView text(
+            String value,
+            float size,
+            boolean bold) {
+
+        TextView t = new TextView(this);
+
+        t.setText(value);
+        t.setTextSize(size);
+        t.setTextColor(
+                darkMode
+                        ? Color.WHITE
+                        : Color.rgb(25,30,40)
+        );
+
+        if(bold)
+            t.setTypeface(null, Typeface.BOLD);
+
+        t.setPadding(0,5,0,5);
+
+        return t;
+    }
+
+    private void addSpace(int size) {
+
+        Space s = new Space(this);
+
+        content.addView(
+                s,
+                new LinearLayout.LayoutParams(
+                        1,size
+                )
+        );
+    }
+
+    private void applyBackground() {
+
+        if(root == null) return;
+
+        root.setBackgroundColor(
+                darkMode
+                        ? Color.rgb(12,15,22)
+                        : Color.rgb(246,248,252)
         );
     }
 }

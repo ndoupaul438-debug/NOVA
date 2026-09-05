@@ -1,0 +1,40 @@
+name: Build NOVA APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout NOVA
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Build NOVA APK
+        run: |
+          chmod +x build-fast.sh
+          ./build-fast.sh
+
+      - name: Upload NOVA APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOVA-APK
+          path: fastbuild/NOVA.apk
+          retention-days: 30

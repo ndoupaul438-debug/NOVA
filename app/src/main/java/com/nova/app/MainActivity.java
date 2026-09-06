@@ -7,21 +7,20 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.*;
 
-import java.util.ArrayList;
+import com.nova.app.core.NovaFeatures;
+
 import java.util.List;
 
 public class MainActivity extends Activity {
 
-    LinearLayout root;
-    LinearLayout content;
-    int primary = Color.rgb(37, 99, 235);
-    int background = Color.rgb(246, 248, 252);
-    int card = Color.WHITE;
-    int text = Color.rgb(20, 25, 35);
-    int muted = Color.rgb(100, 110, 125);
+    private LinearLayout root;
+    private LinearLayout content;
+    private TextView title;
+    private int blue = Color.rgb(37, 99, 235);
+    private int dark = Color.rgb(15, 23, 42);
+    private int light = Color.rgb(248, 250, 252);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,416 +28,256 @@ public class MainActivity extends Activity {
         showHome();
     }
 
-    TextView label(String value, int size, int color, boolean bold) {
+    private TextView text(String value, float size, int color, boolean bold) {
         TextView t = new TextView(this);
         t.setText(value);
         t.setTextSize(size);
         t.setTextColor(color);
+        t.setGravity(Gravity.CENTER_VERTICAL);
         t.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
-        t.setPadding(4, 4, 4, 4);
+        t.setPadding(22, 14, 22, 14);
         return t;
     }
 
-    GradientDrawable bg(int color, float radius) {
+    private GradientDrawable background(int color, float radius) {
         GradientDrawable g = new GradientDrawable();
         g.setColor(color);
         g.setCornerRadius(radius);
         return g;
     }
 
-    Button button(String title, View.OnClickListener listener) {
+    private Button button(String name) {
         Button b = new Button(this);
-        b.setText(title);
-        b.setTextSize(14);
-        b.setTextColor(Color.WHITE);
+        b.setText(name);
+        b.setTextSize(15);
+        b.setTextColor(dark);
         b.setAllCaps(false);
-        b.setGravity(Gravity.CENTER);
-        b.setBackground(bg(primary, 24));
-        b.setOnClickListener(listener);
-
-        LinearLayout.LayoutParams p =
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, 52);
-        p.setMargins(0, 6, 0, 6);
-        b.setLayoutParams(p);
-
+        b.setGravity(Gravity.CENTER_VERTICAL);
+        b.setPadding(18, 8, 18, 8);
+        b.setBackground(background(Color.WHITE, 28));
+        b.setElevation(3);
         return b;
     }
 
-    LinearLayout page() {
+    private void base(String screenTitle) {
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(background);
+        root.setBackgroundColor(light);
 
         LinearLayout header = new LinearLayout(this);
         header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(18, 14, 18, 14);
+        header.setPadding(12, 10, 12, 10);
         header.setBackgroundColor(Color.WHITE);
 
-        TextView logo = label("NOVA", 25, primary, true);
-        header.addView(logo, new LinearLayout.LayoutParams(0, 60, 1));
+        Button back = new Button(this);
+        back.setText("‹");
+        back.setTextSize(30);
+        back.setTextColor(dark);
+        back.setBackgroundColor(Color.TRANSPARENT);
+        back.setOnClickListener(v -> showHome());
 
-        TextView menu = label("☰", 27, text, true);
-        header.addView(menu, new LinearLayout.LayoutParams(55, 60));
+        title = text(screenTitle, 21, dark, true);
+
+        header.addView(back, new LinearLayout.LayoutParams(55, 60));
+        header.addView(title, new LinearLayout.LayoutParams(
+                0, 60, 1
+        ));
 
         root.addView(header);
 
         ScrollView scroll = new ScrollView(this);
         content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(18, 18, 18, 90);
+        content.setPadding(16, 18, 16, 90);
         scroll.addView(content);
 
-        root.addView(scroll,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        root.addView(scroll, new LinearLayout.LayoutParams(
+                -1, 0, 1
+        ));
 
+        bottomNavigation();
+        setContentView(root);
+    }
+
+    private void bottomNavigation() {
         LinearLayout nav = new LinearLayout(this);
         nav.setGravity(Gravity.CENTER);
         nav.setPadding(4, 5, 4, 5);
         nav.setBackgroundColor(Color.WHITE);
 
-        addNav(nav, "⌂", "Home", v -> showHome());
-        addNav(nav, "✦", "M3GAN", v -> showM3GAN());
-        addNav(nav, "⌘", "Code", v -> showCoding());
-        addNav(nav, "▣", "Projects", v -> showProjects());
-        addNav(nav, "☷", "More", v -> showMore());
+        String[] names = {"HOME", "M3GAN", "CODE", "PROJECTS", "MORE"};
 
-        root.addView(nav,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, 68));
+        for (String name : names) {
+            Button b = button(name);
+            b.setTextSize(11);
+            b.setPadding(3, 2, 3, 2);
 
-        setContentView(root);
-        return root;
-    }
+            if (name.equals("HOME")) b.setOnClickListener(v -> showHome());
+            if (name.equals("M3GAN")) b.setOnClickListener(v -> showSection("M3GAN", NovaFeatures.M3GAN));
+            if (name.equals("CODE")) b.setOnClickListener(v -> showSection("CODING HUB", NovaFeatures.CODING_HUB));
+            if (name.equals("PROJECTS")) b.setOnClickListener(v -> showSection("PROJECTS", NovaFeatures.PROJECTS));
+            if (name.equals("MORE")) b.setOnClickListener(v -> showMore());
 
-    void addNav(LinearLayout nav, String icon, String name,
-                View.OnClickListener click) {
-        LinearLayout item = new LinearLayout(this);
-        item.setOrientation(LinearLayout.VERTICAL);
-        item.setGravity(Gravity.CENTER);
-
-        TextView i = label(icon, 21, primary, true);
-        TextView n = label(name, 11, muted, false);
-
-        item.addView(i);
-        item.addView(n);
-
-        item.setOnClickListener(click);
-
-        nav.addView(item,
-                new LinearLayout.LayoutParams(0, 60, 1));
-    }
-
-    void title(String heading, String subtitle) {
-        content.addView(label(heading, 29, text, true));
-        content.addView(label(subtitle, 15, muted, false));
-
-        Space s = new Space(this);
-        content.addView(s, new LinearLayout.LayoutParams(1, 16));
-    }
-
-    void card(String heading, String description, String action,
-              View.OnClickListener listener) {
-
-        LinearLayout c = new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
-        c.setPadding(18, 18, 18, 18);
-        c.setBackground(bg(card, 28));
-
-        TextView h = label(heading, 19, text, true);
-        TextView d = label(description, 13, muted, false);
-
-        c.addView(h);
-        c.addView(d);
-
-        if (action != null) {
-            Button b = button(action, listener);
-            c.addView(b);
+            nav.addView(b, new LinearLayout.LayoutParams(0, 58, 1));
         }
 
-        LinearLayout.LayoutParams p =
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
-        p.setMargins(0, 0, 0, 12);
-
-        content.addView(c, p);
+        root.addView(nav);
     }
 
-    void showHome() {
-        page();
-        title("Good to see you.", "Your creative command center.");
+    private void showHome() {
+        base("NOVA");
 
-        card(
-                "✨ CREATE ANYTHING",
-                "Turn an idea into an app, game, website, AI project or more.",
-                "Start Creating",
-                v -> showCreateAnything()
+        TextView welcome = text(
+                "NOVA\nYour creation command center",
+                25, dark, true
         );
+        welcome.setPadding(8, 10, 8, 22);
+        content.addView(welcome);
 
-        card(
-                "🤖 M3GAN",
-                "Your AI workspace for conversation, coding, learning and creation.",
-                "Open M3GAN",
-                v -> showM3GAN()
-        );
+        addCard("⚡ Quick Create",
+                "Create an App, Game, Website, Web App, AI, API or Script.",
+                v -> showSection("CREATE ANYTHING", NovaFeatures.CREATE_ANYTHING));
 
-        card(
-                "💻 CODING HUB",
-                "Build apps, games, websites, APIs, AI systems and scripts.",
-                "Open Coding Hub",
-                v -> showCoding()
-        );
+        addCard("🤖 M3GAN",
+                "AI chat, coding, tutor, research, documents and Project Brain.",
+                v -> showSection("M3GAN", NovaFeatures.M3GAN));
 
-        card(
-                "📁 PROJECTS",
-                "Manage projects, files, builds, backups and versions.",
-                "Open Projects",
-                v -> showProjects()
-        );
+        addCard("💻 Coding Hub",
+                "Build and test apps, games, websites and AI projects.",
+                v -> showSection("CODING HUB", NovaFeatures.CODING_HUB));
 
-        title("Explore NOVA", "");
+        addCard("🎮 Game Studio",
+                "Create 2D/3D games, characters, maps, physics and more.",
+                v -> showSection("GAME STUDIO", NovaFeatures.GAME_STUDIO));
 
-        card("📚 Learn",
-                "AI tutoring, notes, quizzes, study plans and learning tools.",
-                "Open Learn",
-                v -> showLearn());
+        addCard("🌐 Website Studio",
+                "Build websites and web apps with HTML, CSS, JavaScript or React.",
+                v -> showSection("WEBSITE STUDIO", NovaFeatures.WEBSITE_STUDIO));
 
-        card("🎨 Create Studio",
-                "Design logos, interfaces, documents and creative assets.",
-                "Open Create Studio",
-                v -> showCreate());
+        addCard("🎨 Create Studio",
+                "Design interfaces, logos, icons, images and documents.",
+                v -> showSection("CREATE STUDIO", NovaFeatures.CREATE_STUDIO));
 
-        card("🛠 Tools",
-                "Data, files, converters and developer utilities.",
-                "Open Tools",
-                v -> showTools());
+        addCard("📚 Learn",
+                "Tutor, courses, notes, PDFs, quizzes and study plans.",
+                v -> showSection("LEARN", NovaFeatures.LEARN));
+
+        addCard("📁 Projects",
+                "Manage apps, games, websites, AI projects, builds and backups.",
+                v -> showSection("PROJECTS", NovaFeatures.PROJECTS));
+
+        addCard("🛠 Tools",
+                "JSON, CSV, PDF, images, data analysis and converters.",
+                v -> showSection("TOOLS", NovaFeatures.TOOLS));
     }
 
-    void showCreateAnything() {
-        page();
-        title("✨ Create Anything", "Describe what you want to build.");
+    private void addCard(String heading, String description, View.OnClickListener action) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(16, 15, 16, 15);
+        card.setBackground(background(Color.WHITE, 30));
+        card.setElevation(4);
 
-        EditText idea = new EditText(this);
-        idea.setHint("Example: Build a football game...");
-        idea.setTextSize(16);
-        idea.setGravity(Gravity.TOP);
-        idea.setPadding(18, 18, 18, 18);
-        idea.setBackground(bg(Color.WHITE, 25));
+        TextView h = text(heading, 18, dark, true);
+        TextView d = text(description, 14, Color.DKGRAY, false);
 
-        content.addView(idea,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, 150));
+        card.addView(h);
+        card.addView(d);
 
-        content.addView(button("✨ Ask M3GAN to Create", v -> {
-            Toast.makeText(this,
-                    "Creation blueprint started.",
-                    Toast.LENGTH_SHORT).show();
-        }));
+        card.setOnClickListener(action);
 
-        title("Creation pipeline", "");
-
-        card("1. Idea", "Understand your goal and requirements.", null, null);
-        card("2. Blueprint", "Plan architecture, files and features.", null, null);
-        card("3. Build", "Generate the project and source files.", null, null);
-        card("4. Test & Fix", "Check the project and identify problems.", null, null);
-        card("5. Export", "Prepare APK, AAB, web or ZIP output.", null, null);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2);
+        p.setMargins(0, 0, 0, 14);
+        content.addView(card, p);
     }
 
-    void showM3GAN() {
-        page();
-        title("🤖 M3GAN", "Your AI command center.");
+    private void showSection(String section, List<String> features) {
+        base(section);
 
-        card("New conversation",
-                "Chat with M3GAN about coding, learning, ideas and projects.",
-                "Start Chat",
-                v -> Toast.makeText(this,
-                        "M3GAN chat workspace ready.",
-                        Toast.LENGTH_SHORT).show());
+        TextView info = text(
+                "NOVA • " + section + "\nSelect a feature to open its workspace.",
+                17, dark, true
+        );
+        info.setPadding(8, 5, 8, 20);
+        content.addView(info);
 
-        card("🎤 Voice",
-                "Voice input and spoken responses.",
-                "Voice Mode",
-                v -> Toast.makeText(this,
-                        "Voice mode foundation ready.",
-                        Toast.LENGTH_SHORT).show());
+        for (String feature : features) {
+            Button b = button(feature);
 
-        card("🧠 Project Brain",
-                "Keep project goals, files, architecture and tasks connected.",
-                "Project Context",
-                v -> showProjects());
+            b.setOnClickListener(v -> openFeature(section, feature));
 
-        card("📄 Documents",
-                "Work with project documents and attachments.",
-                "Open Documents",
-                v -> showTools());
-
-        card("🔎 Research",
-                "Research and analysis workspace.",
-                "Research",
-                v -> Toast.makeText(this,
-                        "Research workspace ready.",
-                        Toast.LENGTH_SHORT).show());
+            LinearLayout.LayoutParams p =
+                    new LinearLayout.LayoutParams(-1, 58);
+            p.setMargins(0, 0, 0, 9);
+            content.addView(b, p);
+        }
     }
 
-    void showCoding() {
-        page();
-        title("💻 Coding Hub", "Build almost anything.");
+    private void showMore() {
+        base("MORE");
 
-        String[][] tools = {
-                {"📱 App Studio", "Create Android applications."},
-                {"🎮 Game Studio", "Build 2D and 3D games."},
-                {"🌐 Website Studio", "Create responsive websites."},
-                {"🖥 Web App Studio", "Build full web applications."},
-                {"🧠 AI Studio", "Create AI-powered projects."},
-                {"🔌 API Studio", "Design APIs and services."},
-                {"🐍 Python Studio", "Build scripts and data tools."},
-                {"⌨ Code Editor", "Edit project source code."},
-                {"📂 File Explorer", "Manage project files."},
-                {"▣ Terminal", "Developer command workspace."},
-                {"▶ Preview", "Preview projects."},
-                {"🔨 Build & Export", "Build APK, AAB, web and ZIP."}
-        };
+        addCard("🎨 Create Studio", "Design and creative tools.",
+                v -> showSection("CREATE STUDIO", NovaFeatures.CREATE_STUDIO));
 
-        for (String[] x : tools) {
-            card(x[0], x[1], "Open", v ->
+        addCard("🛠 Tools", "Developer and file utilities.",
+                v -> showSection("TOOLS", NovaFeatures.TOOLS));
+
+        addCard("🛍 Marketplace", "Templates, themes, plugins and assets.",
+                v -> showSection("MARKETPLACE", NovaFeatures.MARKETPLACE));
+
+        addCard("🛡 Security", "Permissions, privacy and security tools.",
+                v -> showSection("SECURITY", NovaFeatures.SECURITY));
+
+        addCard("☁ Cloud", "GitHub, backup, sync and collaboration.",
+                v -> showSection("CLOUD", NovaFeatures.CLOUD));
+
+        addCard("⚙ Settings", "NOVA preferences and configuration.",
+                v -> showSection("SETTINGS", NovaFeatures.SETTINGS));
+    }
+
+    private void openFeature(String section, String feature) {
+        base(feature);
+
+        TextView heading = text(
+                feature,
+                26, dark, true
+        );
+        content.addView(heading);
+
+        TextView description = text(
+                "NOVA " + section + "\n\n"
+                + "This workspace is now connected to NOVA navigation.\n"
+                + "The next implementation layer will connect its real "
+                + "local functionality, project storage and external services.",
+                16, Color.DKGRAY, false
+        );
+        content.addView(description);
+
+        if (feature.equals("App") ||
+            feature.equals("Game") ||
+            feature.equals("Website") ||
+            feature.equals("Web App") ||
+            feature.equals("AI") ||
+            feature.equals("API") ||
+            feature.equals("Script")) {
+
+            Button create = button("＋ CREATE " + feature.toUpperCase());
+            create.setTextColor(blue);
+            create.setOnClickListener(v ->
                     Toast.makeText(this,
-                            x[0] + " selected.",
+                            "Creation workspace opened for " + feature,
                             Toast.LENGTH_SHORT).show());
+
+            content.addView(create);
         }
-    }
 
-    void showProjects() {
-        page();
-        title("📁 Projects", "Everything you create in NOVA.");
-
-        card("All Projects",
-                "Apps, games, websites, AI projects, APIs and scripts.",
-                "Browse Projects",
-                v -> Toast.makeText(this,
-                        "Project browser ready.",
-                        Toast.LENGTH_SHORT).show());
-
-        card("📦 Builds",
-                "APK, AAB, web and ZIP outputs.",
-                "Open Builds",
-                v -> Toast.makeText(this,
-                        "Build manager ready.",
-                        Toast.LENGTH_SHORT).show());
-
-        card("☁️ Backup",
-                "Back up and restore project data.",
-                "Backup",
-                v -> Toast.makeText(this,
-                        "Backup manager ready.",
-                        Toast.LENGTH_SHORT).show());
-
-        card("⏱ Version History",
-                "Track project changes and restore versions.",
-                "History",
-                v -> Toast.makeText(this,
-                        "Version history ready.",
-                        Toast.LENGTH_SHORT).show());
-
-        card("🔗 GitHub",
-                "Connect projects to Git repositories.",
-                "GitHub",
-                v -> Toast.makeText(this,
-                        "GitHub workspace ready.",
-                        Toast.LENGTH_SHORT).show());
-    }
-
-    void showLearn() {
-        page();
-        title("📚 Learn", "Learn with M3GAN.");
-
-        card("AI Tutor", "Personal tutoring and explanations.",
-                "Start Learning", v -> toast("AI Tutor"));
-
-        card("📝 Notes", "Create and organize study notes.",
-                "Open Notes", v -> toast("Notes"));
-
-        card("🧠 Quizzes", "Practice and track your scores.",
-                "Take Quiz", v -> toast("Quizzes"));
-
-        card("🗂 Flashcards", "Study with active recall.",
-                "Open Flashcards", v -> toast("Flashcards"));
-
-        card("🎯 Study Plans", "Create structured study schedules.",
-                "Create Plan", v -> toast("Study Plans"));
-
-        card("📈 Progress", "Track your learning progress.",
-                "View Progress", v -> toast("Progress"));
-    }
-
-    void showCreate() {
-        page();
-        title("🎨 Create Studio", "Turn ideas into creative work.");
-
-        card("🎨 Design", "UI, layouts, colors and design systems.",
-                "Open Design", v -> toast("Design Studio"));
-
-        card("🖼 Image Studio", "Create and manage visual assets.",
-                "Open Images", v -> toast("Image Studio"));
-
-        card("🏷 Logo & Icons", "Create branding assets.",
-                "Open Branding", v -> toast("Branding Studio"));
-
-        card("📄 Documents", "Create professional documents.",
-                "Open Documents", v -> toast("Documents"));
-
-        card("📊 Presentations", "Build presentation projects.",
-                "Open Presentations", v -> toast("Presentations"));
-    }
-
-    void showTools() {
-        page();
-        title("🛠 Tools", "Useful utilities inside NOVA.");
-
-        card("📊 Data Analysis", "Analyze CSV and structured data.",
-                "Open Data Tools", v -> toast("Data Analysis"));
-
-        card("📄 PDF Tools", "Work with PDF documents.",
-                "Open PDF Tools", v -> toast("PDF Tools"));
-
-        card("🔄 Converters", "Convert supported project formats.",
-                "Open Converters", v -> toast("Converters"));
-
-        card("🗃 File Tools", "Inspect and organize files.",
-                "Open File Tools", v -> toast("File Tools"));
-    }
-
-    void showMore() {
-        page();
-        title("NOVA", "Everything else.");
-
-        card("🛍 Marketplace",
-                "Templates, plugins, themes, agents and assets.",
-                "Open Marketplace", v -> toast("Marketplace"));
-
-        card("🛡 Security",
-                "Permissions, privacy, API keys and security checks.",
-                "Security Center", v -> toast("Security Center"));
-
-        card("☁️ Cloud & GitHub",
-                "Sync, backup, sharing and repositories.",
-                "Cloud", v -> toast("Cloud"));
-
-        card("🎨 Themes",
-                "Customize the NOVA interface.",
-                "Theme Center", v -> toast("Themes"));
-
-        card("⚙️ Settings",
-                "Configure NOVA and M3GAN.",
-                "Settings", v -> toast("Settings"));
-
-        card("ℹ️ About NOVA",
-                "NOVA creative and development platform.",
-                "About", v -> toast("NOVA"));
-    }
-
-    void toast(String s) {
-        Toast.makeText(this, s + " selected.", Toast.LENGTH_SHORT).show();
+        if (feature.equals("Project Brain")) {
+            Button brain = button("🧠 OPEN PROJECT BRAIN");
+            brain.setOnClickListener(v ->
+                    Toast.makeText(this,
+                            "Project Brain foundation ready",
+                            Toast.LENGTH_SHORT).show());
+            content.addView(brain);
+        }
     }
 }

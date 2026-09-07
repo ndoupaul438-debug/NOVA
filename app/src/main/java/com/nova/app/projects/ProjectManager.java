@@ -2,6 +2,8 @@ package com.nova.app.projects;
 
 import android.content.Context;
 
+import com.nova.app.workspace.NovaWorkspace;
+
 import org.json.JSONObject;
 
 import java.io.File;
@@ -19,7 +21,7 @@ public class ProjectManager {
     private final File root;
 
     public ProjectManager(Context context) {
-        root = new File(context.getFilesDir(), "nova/projects");
+        root = new NovaWorkspace(context).getProjects();
         if (!root.exists()) {
             root.mkdirs();
         }

@@ -1,0 +1,210 @@
+package com.nova.app.core;
+
+import android.content.Context;
+
+import com.nova.app.ai.MeganEngine;
+import com.nova.app.build.NovaBuildManager;
+import com.nova.app.cloud.NovaCloud;
+import com.nova.app.learning.NovaLearning;
+import com.nova.app.projects.ProjectManager;
+import com.nova.app.security.NovaSecurity;
+import com.nova.app.tools.NovaTools;
+import com.nova.app.workspace.NovaWorkspace;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public final class NovaFeatureService {
+
+    private final Context context;
+    private final MeganEngine megan;
+    private final ProjectManager projects;
+    private final NovaBuildManager builds;
+    private final NovaCloud cloud;
+    private final NovaLearning learning;
+    private final NovaWorkspace workspace;
+
+    public NovaFeatureService(Context context) {
+        this.context = context.getApplicationContext();
+
+        megan = new MeganEngine(this.context);
+        projects = new ProjectManager(this.context);
+        builds = new NovaBuildManager(this.context);
+        cloud = new NovaCloud(this.context);
+        learning = new NovaLearning(this.context);
+        workspace = new NovaWorkspace(this.context);
+    }
+
+    public MeganEngine megan() {
+        return megan;
+    }
+
+    public ProjectManager projects() {
+        return projects;
+    }
+
+    public NovaBuildManager builds() {
+        return builds;
+    }
+
+    public NovaCloud cloud() {
+        return cloud;
+    }
+
+    public NovaLearning learning() {
+        return learning;
+    }
+
+    public List<String> tools() {
+        return NovaTools.all();
+    }
+
+    public NovaWorkspace workspace() {
+        return workspace;
+    }
+
+    public JSONObject execute(
+            String module,
+            String feature
+    ) {
+
+        JSONObject result = new JSONObject();
+
+        try {
+            result.put("success", true);
+            result.put("module", module == null ? "" : module);
+            result.put("feature", feature == null ? "" : feature);
+            result.put("timestamp", System.currentTimeMillis());
+
+            NovaAppState.setActiveModule(context, module);
+            NovaAppState.setLastAction(context, feature);
+
+            if ("M3GAN".equalsIgnoreCase(module)) {
+                result.put("service", "M3GAN intelligence");
+                result.put("status", megan.status());
+                return result;
+            }
+
+            if ("PROJECTS".equalsIgnoreCase(module)) {
+                result.put("service", "Project Manager");
+                result.put(
+                        "project_count",
+                        projects.getProjects().size()
+                );
+                return result;
+            }
+
+            if ("CLOUD".equalsIgnoreCase(module)) {
+                result.put("service", "Cloud integration");
+                result.put("status", cloud.status());
+                return result;
+            }
+
+            if ("LEARN".equalsIgnoreCase(module)) {
+                result.put("service", "Learning engine");
+                result.put(
+                        "tools",
+                        new JSONArray(learning.defaultTools())
+                );
+                return result;
+            }
+
+            if ("SECURITY".equalsIgnoreCase(module)) {
+                result.put("service", "Security layer");
+                result.put(
+                        "sandbox",
+                        NovaSecurity.sandboxEnabled(context)
+                );
+                result.put(
+                        "external_actions",
+                        NovaSecurity.allowExternalActions(context)
+                );
+                return result;
+            }
+
+            if ("TOOLS".equalsIgnoreCase(module)) {
+                result.put("service", "Tools layer");
+                result.put("tools", new JSONArray(NovaTools.all()));
+                return result;
+            }
+
+            if ("CODING HUB".equalsIgnoreCase(module)
+                    || "GAME STUDIO".equalsIgnoreCase(module)
+                    || "WEBSITE STUDIO".equalsIgnoreCase(module)
+                    || "CREATE STUDIO".equalsIgnoreCase(module)
+                    || "AI STUDIO".equalsIgnoreCase(module)) {
+
+                result.put("service", "NOVA creation pipeline");
+                result.put("workspace", workspace.getRoot().getAbsolutePath());
+                result.put("build_apk", builds.apkOutput().getAbsolutePath());
+                result.put("build_aab", builds.aabOutput().getAbsolutePath());
+                result.put("build_web", builds.webOutput().getAbsolutePath());
+                result.put("build_zip", builds.zipOutput().getAbsolutePath());
+
+                return result;
+            }
+
+            result.put("service", "NOVA core");
+            result.put("status", "ready");
+
+        } catch (Exception e) {
+
+            try {
+                result.put("success", false);
+                result.put("error",
+                        e.getMessage() == null
+                                ? "Unknown error"
+                                : e.getMessage());
+            } catch (Exception ignored) {
+            }
+        }
+
+        return result;
+    }
+
+    public JSONObject diagnostics() {
+
+        JSONObject result = new JSONObject();
+
+        try {
+            result.put("nova", "ready");
+            result.put("m3gan", megan.status());
+            result.put("workspace",
+                    workspace.getRoot().getAbsolutePath());
+            result.put("projects",
+                    projects.getProjects().size());
+            result.put("sandbox",
+                    NovaSecurity.sandboxEnabled(context));
+            result.put("external_actions",
+                    NovaSecurity.allowExternalActions(context));
+
+            JSONArray modules = new JSONArray();
+
+            modules.put("HOME");
+            modules.put("M3GAN");
+            modules.put("CODING_HUB");
+            modules.put("GAME_STUDIO");
+            modules.put("WEBSITE_STUDIO");
+            modules.put("CREATE_STUDIO");
+            modules.put("AI_STUDIO");
+            modules.put("LEARN");
+            modules.put("PROJECTS");
+            modules.put("TOOLS");
+            modules.put("MARKETPLACE");
+            modules.put("SECURITY");
+            modules.put("CLOUD");
+            modules.put("SETTINGS");
+
+            result.put("modules", modules);
+
+        } catch (Exception ignored) {
+        }
+
+        return result;
+    }
+}

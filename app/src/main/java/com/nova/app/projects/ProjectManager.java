@@ -2,11 +2,17 @@ package com.nova.app.projects;
 
 import android.content.Context;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ProjectManager {
 
@@ -23,21 +29,16 @@ public class ProjectManager {
         return root;
     }
 
-    public File createProject(String name, String type) throws IOException {
+    public File createProject(String name, String type) {
+        String safeName = sanitize(name);
+        String safeType = sanitize(type);
 
-        String safeName = name.trim()
-                .replaceAll("[^a-zA-Z0-9._-]", "_");
-
-        if (safeName.length() == 0) {
-            throw new IOException("Project name cannot be empty");
+        File typeDir = new File(root, safeType);
+        if (!typeDir.exists()) {
+            typeDir.mkdirs();
         }
 
-        File typeFolder = new File(root, type.toLowerCase());
-        if (!typeFolder.exists()) {
-            typeFolder.mkdirs();
-        }
-
-        File project = new File(typeFolder, safeName);
+        File project = new File(typeDir, safeName);
 
         if (!project.exists()) {
             project.mkdirs();
@@ -47,91 +48,191 @@ public class ProjectManager {
         new File(project, "assets").mkdirs();
         new File(project, "tests").mkdirs();
         new File(project, "builds").mkdirs();
+        new File(project, ".nova").mkdirs();
         new File(project, ".nova/history").mkdirs();
+        new File(project, ".nova/backups").mkdirs();
 
-        File json = new File(project, "project.json");
+        try {
+            JSONObject info = new JSONObject();
+            info.put("name", name);
+            info.put("type", type);
+            info.put("version", "1.0.0");
+            info.put("created", now());
+            info.put("updated", now());
+            info.put("projectBrain", true);
+            info.put("versionHistory", true);
 
-        FileWriter writer = new FileWriter(json);
-        writer.write(
-                "{\n" +
-                "  \"name\": \"" + escape(safeName) + "\",\n" +
-                "  \"type\": \"" + escape(type) + "\",\n" +
-                "  \"version\": \"0.1.0\",\n" +
-                "  \"created\": \"" + System.currentTimeMillis() + "\",\n" +
-                "  \"updated\": \"" + System.currentTimeMillis() + "\",\n" +
-                "  \"nova\": {\n" +
-                "    \"projectBrain\": true,\n" +
-                "    \"versionHistory\": true\n" +
-                "  }\n" +
-                "}\n"
-        );
-        writer.close();
+            write(new File(project, "project.json"), info.toString(2));
 
-        File readme = new File(project, "README.md");
-        FileWriter readmeWriter = new FileWriter(readme);
-        readmeWriter.write("# " + safeName + "\n\nCreated with NOVA.\n");
-        readmeWriter.close();
+            File readme = new File(project, "README.md");
+            if (!readme.exists()) {
+                write(readme,
+                        "# " + name + "\n\n" +
+                        "NOVA project\n\n" +
+                        "Type: " + type + "\n\n" +
+                        "Created with NOVA.\n");
+            }
+
+            File brain = new File(project, ".nova/project-brain.json");
+            JSONObject projectBrain = new JSONObject();
+            projectBrain.put("project", name);
+            projectBrain.put("type", type);
+            projectBrain.put("goal", "");
+            projectBrain.put("architecture", "");
+            projectBrain.put("dependencies", "");
+            projectBrain.put("todo", "");
+            projectBrain.put("notes", "");
+            projectBrain.put("lastError", "");
+            projectBrain.put("updated", now());
+
+            write(brain, projectBrain.toString(2));
+
+        } catch (Exception ignored) {
+        }
 
         return project;
     }
 
     public List<File> getProjects() {
-
         List<File> result = new ArrayList<>();
 
-        collect(root, result);
+        if (!root.exists()) {
+            return result;
+        }
+
+        File[] types = root.listFiles();
+        if (types == null) {
+            return result;
+        }
+
+        for (File type : types) {
+            if (!type.isDirectory()) continue;
+
+            File[] projects = type.listFiles();
+            if (projects == null) continue;
+
+            for (File project : projects) {
+                if (project.isDirectory()) {
+                    result.add(project);
+                }
+            }
+        }
+
+        Collections.sort(result, new Comparator<File>() {
+            @Override
+            public int compare(File a, File b) {
+                return Long.compare(
+                        b.lastModified(),
+                        a.lastModified()
+                );
+            }
+        });
 
         return result;
     }
 
-    private void collect(File directory, List<File> result) {
+    public JSONObject readInfo(File project) {
+        try {
+            File file = new File(project, "project.json");
 
-        File[] children = directory.listFiles();
-
-        if (children == null) {
-            return;
-        }
-
-        for (File file : children) {
-
-            if (file.isDirectory()) {
-
-                if (new File(file, "project.json").exists()) {
-                    result.add(file);
-                } else {
-                    collect(file, result);
-                }
+            if (!file.exists()) {
+                return new JSONObject();
             }
+
+            java.io.BufferedReader reader =
+                    new java.io.BufferedReader(
+                            new java.io.FileReader(file));
+
+            StringBuilder data = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                data.append(line);
+            }
+
+            reader.close();
+
+            return new JSONObject(data.toString());
+
+        } catch (Exception e) {
+            return new JSONObject();
         }
     }
 
     public boolean deleteProject(File project) {
+        return deleteRecursive(project);
+    }
 
+    public boolean renameProject(File project, String newName) {
         if (project == null || !project.exists()) {
             return false;
         }
 
-        return deleteRecursive(project);
+        File parent = project.getParentFile();
+        File destination =
+                new File(parent, sanitize(newName));
+
+        if (destination.exists()) {
+            return false;
+        }
+
+        boolean renamed = project.renameTo(destination);
+
+        if (renamed) {
+            try {
+                JSONObject info = readInfo(destination);
+                info.put("name", newName);
+                info.put("updated", now());
+                write(new File(destination, "project.json"),
+                        info.toString(2));
+            } catch (Exception ignored) {
+            }
+        }
+
+        return renamed;
     }
 
     private boolean deleteRecursive(File file) {
+        if (file == null || !file.exists()) {
+            return true;
+        }
 
-        if (file.isDirectory()) {
+        File[] children = file.listFiles();
 
-            File[] children = file.listFiles();
-
-            if (children != null) {
-                for (File child : children) {
-                    deleteRecursive(child);
-                }
+        if (children != null) {
+            for (File child : children) {
+                deleteRecursive(child);
             }
         }
 
         return file.delete();
     }
 
-    private String escape(String value) {
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"");
+    private String sanitize(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "Untitled";
+        }
+
+        return value.trim()
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String now() {
+        return new SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss",
+                Locale.US
+        ).format(new Date());
+    }
+
+    private void write(File file, String data) throws Exception {
+        File parent = file.getParentFile();
+
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+
+        FileWriter writer = new FileWriter(file);
+        writer.write(data);
+        writer.close();
     }
 }

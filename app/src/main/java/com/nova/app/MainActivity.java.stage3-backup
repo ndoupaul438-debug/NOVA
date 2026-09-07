@@ -158,29 +158,8 @@ public class MainActivity extends Activity {
     private void showHome() {
         content.removeAllViews();
 
-        LinearLayout commandCenter = NovaCommandCenter.create(
-                this,
-                destination -> {
-                    if (destination.contains("App Studio")) {
-                        showCreate();
-                    } else if (destination.contains("Game Studio")) {
-                        showFeatureGroup("GAME STUDIO", NovaFeatures.GAME_STUDIO);
-                    } else if (destination.contains("Website Studio")) {
-                        showFeatureGroup("WEBSITE STUDIO", NovaFeatures.WEBSITE_STUDIO);
-                    } else if (destination.contains("AI Studio")) {
-                        showFeatureGroup("AI STUDIO", NovaFeatures.AI_STUDIO);
-                    } else if (destination.contains("Projects")) {
-                        showProjects();
-                    } else if (destination.contains("M3GAN")) {
-                        showMegan();
-                    } else if (destination.contains("Settings")) {
-                        showSettings();
-                    }
-                }
-        );
-
         content.addView(
-                commandCenter,
+                NovaCommandCenter.create(this),
                 new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT

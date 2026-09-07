@@ -61,6 +61,23 @@ public final class NovaFeatures {
         "Build & Export"
     );
 
+    public static final List<String> AI_STUDIO = Arrays.asList(
+        "AI Assistant",
+        "AI Chatbot",
+        "AI Agent",
+        "AI Model",
+        "Prompt Studio",
+        "Knowledge Base",
+        "RAG Project",
+        "Voice AI",
+        "Vision AI",
+        "AI API",
+        "AI Automation",
+        "AI Testing",
+        "AI Evaluation",
+        "AI Deployment"
+    );
+
     public static final List<String> GAME_STUDIO = Arrays.asList(
         "2D",
         "3D",

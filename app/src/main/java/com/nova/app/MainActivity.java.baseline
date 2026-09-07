@@ -14,7 +14,6 @@ import com.nova.app.core.NovaFeatures;
 import com.nova.app.projects.ProjectManager;
 import com.nova.app.settings.NovaTheme;
 import com.nova.app.settings.ThemeRegistry;
-import com.nova.app.ui.NovaCommandCenter;
 
 import java.io.File;
 import java.util.List;
@@ -156,36 +155,49 @@ public class MainActivity extends Activity {
     }
 
     private void showHome() {
-        content.removeAllViews();
+        clear("NOVA", "Your professional creation and AI workspace");
 
-        LinearLayout commandCenter = NovaCommandCenter.create(
-                this,
-                destination -> {
-                    if (destination.contains("App Studio")) {
-                        showCreate();
-                    } else if (destination.contains("Game Studio")) {
-                        showFeatureGroup("GAME STUDIO", NovaFeatures.GAME_STUDIO);
-                    } else if (destination.contains("Website Studio")) {
-                        showFeatureGroup("WEBSITE STUDIO", NovaFeatures.WEBSITE_STUDIO);
-                    } else if (destination.contains("AI Studio")) {
-                        showFeatureGroup("AI STUDIO", NovaFeatures.AI_STUDIO);
-                    } else if (destination.contains("Projects")) {
-                        showProjects();
-                    } else if (destination.contains("M3GAN")) {
-                        showMegan();
-                    } else if (destination.contains("Settings")) {
-                        showSettings();
-                    }
-                }
-        );
+        content.addView(card(
+                "⚡ Quick Create",
+                "Create an app, game, website, web app, AI, API or script.",
+                v -> showCreate()
+        ));
 
-        content.addView(
-                commandCenter,
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-        );
+        content.addView(card(
+                "🤖 M3GAN",
+                "AI assistant, coding, research, tutoring and project intelligence.",
+                v -> showMegan()
+        ));
+
+        content.addView(card(
+                "💻 Coding Hub",
+                "Build, edit, test, debug and export projects.",
+                v -> showFeatureGroup("CODING HUB", NovaFeatures.CODING_HUB)
+        ));
+
+        content.addView(card(
+                "📁 Projects",
+                "Open and manage everything created inside NOVA.",
+                v -> showProjects()
+        ));
+
+        content.addView(card(
+                "🎨 Create Studio",
+                "Design interfaces, images, logos, icons and documents.",
+                v -> showFeatureGroup("CREATE STUDIO", NovaFeatures.CREATE_STUDIO)
+        ));
+
+        content.addView(card(
+                "📚 Learn",
+                "AI tutoring, courses, notes, quizzes and study tools.",
+                v -> showFeatureGroup("LEARN", NovaFeatures.LEARN)
+        ));
+
+        content.addView(card(
+                "⚙️ Settings",
+                "Themes, appearance, privacy, storage and NOVA settings.",
+                v -> showSettings()
+        ));
     }
 
     private void showCreate() {

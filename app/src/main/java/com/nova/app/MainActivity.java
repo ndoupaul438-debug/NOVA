@@ -1,6 +1,9 @@
 package com.nova.app;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -11,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 
 import com.nova.app.core.NovaFeatures;
+import com.nova.app.ai.MeganEngine;
 import com.nova.app.projects.ProjectManager;
 import com.nova.app.settings.NovaTheme;
 import com.nova.app.settings.ThemeRegistry;
@@ -26,6 +30,8 @@ public class MainActivity extends Activity {
     private String currentTheme;
 
     private int DP;
+    private TextToSpeech novaTts;
+    private static final int VOICE_REQUEST = 7101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,13 +234,382 @@ public class MainActivity extends Activity {
     private void showMegan() {
         clear("M3GAN", "NOVA's AI workspace");
 
+        content.addView(card(
+                "🧠 M3GAN Chat",
+                "Talk to the local NOVA intelligence engine.",
+                v -> showMeganChat()
+        ));
+
         for (String feature : NovaFeatures.M3GAN) {
-            content.addView(card(
-                    feature,
-                    "Open " + feature + " inside M3GAN.",
-                    v -> showFeature(feature)
-            ));
+            if (!feature.equalsIgnoreCase("Chat")) {
+                content.addView(card(
+                        feature,
+                        "Open " + feature + " inside M3GAN.",
+                        v -> showFeature(feature)
+                ));
+            }
         }
+    }
+
+    private void showMeganChat() {
+        clear("M3GAN", "AI Creation Engine");
+
+        // Header
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.VERTICAL);
+        header.setPadding(dp(18), dp(16), dp(18), dp(16));
+        header.setBackground(background(
+                NovaTheme.card(currentTheme), 20
+        ));
+
+        TextView name = text("🧠  M3GAN", 24, true);
+        name.setTextColor(NovaTheme.accent(currentTheme));
+
+        TextView description = text(
+                "Your NOVA AI creation assistant",
+                14,
+                false
+        );
+        description.setTextColor(NovaTheme.muted(currentTheme));
+
+        TextView provider = text(
+                "● LOCAL AI  •  READY",
+                12,
+                true
+        );
+        provider.setTextColor(Color.rgb(5, 150, 105));
+
+        header.addView(name);
+        header.addView(description);
+        header.addView(provider);
+
+        content.addView(header);
+
+        // Quick prompts
+        TextView quickTitle = text("Quick prompts", 15, true);
+        quickTitle.setPadding(0, dp(16), 0, dp(8));
+        content.addView(quickTitle);
+
+        LinearLayout prompts = new LinearLayout(this);
+        prompts.setOrientation(LinearLayout.HORIZONTAL);
+
+        String[] quick = {
+                "Build an app",
+                "Write code",
+                "Teach me",
+                "Plan a project"
+        };
+
+        final EditText[] inputHolder = new EditText[1];
+
+        for (String prompt : quick) {
+            Button q = new Button(this);
+            q.setText(prompt);
+            q.setTextSize(11);
+            q.setAllCaps(false);
+            q.setTextColor(NovaTheme.accent(currentTheme));
+            q.setBackground(background(
+                    NovaTheme.card(currentTheme), 14
+            ));
+
+            LinearLayout.LayoutParams qp =
+                    new LinearLayout.LayoutParams(
+                            0,
+                            dp(46),
+                            1
+                    );
+
+            qp.setMargins(dp(3), 0, dp(3), 0);
+            prompts.addView(q, qp);
+
+            q.setOnClickListener(v -> {
+                if (inputHolder[0] != null) {
+                    inputHolder[0].setText(prompt + " ");
+                    inputHolder[0].setSelection(
+                            inputHolder[0].length()
+                    );
+                    inputHolder[0].requestFocus();
+                }
+            });
+        }
+
+        content.addView(prompts);
+
+        // Conversation
+        LinearLayout conversation = new LinearLayout(this);
+        conversation.setOrientation(LinearLayout.VERTICAL);
+        conversation.setPadding(0, dp(14), 0, dp(10));
+
+        ScrollView chatScroll = new ScrollView(this);
+        chatScroll.setFillViewport(false);
+        chatScroll.addView(conversation);
+
+        content.addView(chatScroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(300)
+        ));
+
+        MeganEngine engine = new MeganEngine(this);
+
+        // Restore history
+        for (int i = 0;
+             i < engine.getConversationHistory().length();
+             i++) {
+
+            try {
+                org.json.JSONObject item =
+                        engine.getConversationHistory()
+                                .getJSONObject(i);
+
+                addMeganMessage(
+                        conversation,
+                        "You",
+                        item.optString("request"),
+                        false
+                );
+
+                addMeganMessage(
+                        conversation,
+                        "M3GAN",
+                        item.optString("response"),
+                        true
+                );
+
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Input row
+        LinearLayout inputRow = new LinearLayout(this);
+        inputRow.setOrientation(LinearLayout.HORIZONTAL);
+        inputRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        EditText input = new EditText(this);
+        inputHolder[0] = input;
+
+        input.setHint("Message M3GAN...");
+        input.setTextSize(15);
+        input.setTextColor(NovaTheme.text(currentTheme));
+        input.setHintTextColor(NovaTheme.muted(currentTheme));
+        input.setSingleLine(false);
+        input.setMaxLines(4);
+        input.setPadding(
+                dp(14),
+                dp(8),
+                dp(14),
+                dp(8)
+        );
+        input.setBackground(background(
+                NovaTheme.card(currentTheme), 16
+        ));
+
+        Button send = new Button(this);
+        send.setText("➤");
+        send.setTextSize(20);
+        send.setTextColor(Color.WHITE);
+        send.setAllCaps(false);
+        send.setTypeface(Typeface.DEFAULT_BOLD);
+        send.setBackground(background(
+                NovaTheme.accent(currentTheme), 16
+        ));
+
+        LinearLayout.LayoutParams inputParams =
+                new LinearLayout.LayoutParams(
+                        0,
+                        dp(58),
+                        1
+                );
+
+        LinearLayout.LayoutParams sendParams =
+                new LinearLayout.LayoutParams(
+                        dp(64),
+                        dp(58)
+                );
+
+        sendParams.setMargins(dp(8), 0, 0, 0);
+
+        inputRow.addView(input, inputParams);
+        inputRow.addView(send, sendParams);
+
+        content.addView(inputRow);
+
+        // Controls
+        LinearLayout controls = new LinearLayout(this);
+        controls.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button clearChat = new Button(this);
+        clearChat.setText("🧹 Clear");
+        clearChat.setAllCaps(false);
+        clearChat.setTextColor(NovaTheme.text(currentTheme));
+        clearChat.setBackgroundColor(Color.TRANSPARENT);
+
+        Button agentTask = new Button(this);
+        agentTask.setText("🤖 Agent Task");
+        agentTask.setAllCaps(false);
+        agentTask.setTextColor(NovaTheme.accent(currentTheme));
+        agentTask.setBackgroundColor(Color.TRANSPARENT);
+
+        controls.addView(
+                clearChat,
+                new LinearLayout.LayoutParams(0, dp(48), 1)
+        );
+
+        controls.addView(
+                agentTask,
+                new LinearLayout.LayoutParams(0, dp(48), 1)
+        );
+
+        content.addView(controls);
+
+        // Send
+        send.setOnClickListener(v -> {
+            String request = input.getText().toString().trim();
+
+            if (request.isEmpty()) {
+                return;
+            }
+
+            String response = engine.respond(request);
+            String intent = engine.detectIntent(request);
+
+            addMeganMessage(
+                    conversation,
+                    "You",
+                    request,
+                    false
+            );
+
+            addMeganMessage(
+                    conversation,
+                    "M3GAN  •  " + intent,
+                    response,
+                    true
+            );
+
+            input.setText("");
+
+            chatScroll.post(() ->
+                    chatScroll.fullScroll(View.FOCUS_DOWN)
+            );
+        });
+
+        // Enter key sends when appropriate
+        input.setOnEditorActionListener((v, actionId, event) -> {
+            if (event != null &&
+                    event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER &&
+                    event.getAction() == android.view.KeyEvent.ACTION_DOWN) {
+
+                send.performClick();
+                return true;
+            }
+
+            return false;
+        });
+
+        clearChat.setOnClickListener(v -> {
+            engine.clearConversationHistory();
+            conversation.removeAllViews();
+
+            Toast.makeText(
+                    this,
+                    "Conversation cleared",
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+
+        agentTask.setOnClickListener(v -> {
+            String request = input.getText().toString().trim();
+
+            if (request.isEmpty()) {
+                Toast.makeText(
+                        this,
+                        "Enter a task first",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            org.json.JSONObject task =
+                    engine.createAgentTask(request);
+
+            Toast.makeText(
+                    this,
+                    "Agent task queued • " +
+                            task.optString(
+                                    "intent",
+                                    "conversation"
+                            ),
+                    Toast.LENGTH_SHORT
+            ).show();
+        });
+    }
+
+    private void addMeganMessage(
+            LinearLayout conversation,
+            String sender,
+            String message,
+            boolean assistant
+    ) {
+        LinearLayout bubble = new LinearLayout(this);
+        bubble.setOrientation(LinearLayout.VERTICAL);
+        bubble.setPadding(
+                dp(14),
+                dp(10),
+                dp(14),
+                dp(10)
+        );
+
+        int backgroundColor = assistant
+                ? NovaTheme.card(currentTheme)
+                : NovaTheme.accent(currentTheme);
+
+        bubble.setBackground(
+                background(backgroundColor, 16)
+        );
+
+        TextView name = text(
+                sender,
+                12,
+                true
+        );
+
+        name.setTextColor(
+                assistant
+                        ? NovaTheme.accent(currentTheme)
+                        : Color.WHITE
+        );
+
+        TextView body = text(
+                message,
+                14,
+                false
+        );
+
+        body.setTextColor(
+                assistant
+                        ? NovaTheme.text(currentTheme)
+                        : Color.WHITE
+        );
+
+        body.setPadding(0, dp(4), 0, 0);
+
+        bubble.addView(name);
+        bubble.addView(body);
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+
+        params.setMargins(
+                0,
+                0,
+                0,
+                dp(10)
+        );
+
+        conversation.addView(bubble, params);
     }
 
     private void showProjects() {
@@ -388,6 +763,11 @@ public class MainActivity extends Activity {
     }
 
     private void showFeature(String feature) {
+        if ("Voice".equalsIgnoreCase(feature)) {
+            showMeganVoice();
+            return;
+        }
+
         clear(feature, "NOVA feature workspace");
 
         content.addView(card(
@@ -400,6 +780,250 @@ public class MainActivity extends Activity {
                 "← Back to Home",
                 v -> showHome()
         ));
+    }
+
+    private void showMeganVoice() {
+        clear("M3GAN Voice", "Speak naturally with NOVA");
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER_HORIZONTAL);
+        panel.setPadding(
+                dp(20),
+                dp(24),
+                dp(20),
+                dp(20)
+        );
+        panel.setBackground(
+                background(NovaTheme.card(currentTheme), 22)
+        );
+
+        TextView icon = text("🎙️", 52, false);
+        icon.setGravity(Gravity.CENTER);
+
+        TextView heading = text(
+                "Talk to M3GAN",
+                24,
+                true
+        );
+        heading.setGravity(Gravity.CENTER);
+
+        TextView status = text(
+                "Tap the microphone and speak",
+                14,
+                false
+        );
+        status.setTextColor(NovaTheme.muted(currentTheme));
+        status.setGravity(Gravity.CENTER);
+
+        TextView transcript = text(
+                "Your speech will appear here.",
+                16,
+                false
+        );
+        transcript.setTextColor(NovaTheme.text(currentTheme));
+        transcript.setGravity(Gravity.CENTER);
+        transcript.setPadding(
+                dp(10),
+                dp(20),
+                dp(10),
+                dp(20)
+        );
+
+        Button microphone = button(
+                "🎙️  Start Listening",
+                v -> startMeganVoice(status, transcript)
+        );
+
+        Button speak = button(
+                "🔊  Speak Last Response",
+                v -> {
+                    String value = transcript.getText().toString();
+
+                    if (!value.isEmpty() &&
+                            !value.equals("Your speech will appear here.")) {
+                        speakMegan(value);
+                    }
+                }
+        );
+
+        panel.addView(
+                icon,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(80)
+                )
+        );
+
+        panel.addView(
+                heading,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(45)
+                )
+        );
+
+        panel.addView(
+                status,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(35)
+                )
+        );
+
+        panel.addView(
+                transcript,
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(110)
+                )
+        );
+
+        panel.addView(microphone);
+        panel.addView(speak);
+
+        content.addView(panel);
+
+        content.addView(button(
+                "← Back to M3GAN",
+                v -> showMegan()
+        ));
+
+        if (novaTts == null) {
+            novaTts = new TextToSpeech(
+                    this,
+                    result -> {
+                        if (result != TextToSpeech.ERROR) {
+                            novaTts.setLanguage(
+                                    java.util.Locale.getDefault()
+                            );
+                        }
+                    }
+            );
+        }
+    }
+
+    private void startMeganVoice(
+            TextView status,
+            TextView transcript
+    ) {
+        Intent intent = new Intent(
+                RecognizerIntent.ACTION_RECOGNIZE_SPEECH
+        );
+
+        intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+        );
+
+        intent.putExtra(
+                RecognizerIntent.EXTRA_LANGUAGE,
+                java.util.Locale.getDefault()
+        );
+
+        intent.putExtra(
+                RecognizerIntent.EXTRA_PROMPT,
+                "Speak to M3GAN"
+        );
+
+        status.setText("● Listening...");
+
+        try {
+            startActivityForResult(
+                    intent,
+                    VOICE_REQUEST
+            );
+        } catch (Exception e) {
+            status.setText("Voice recognition unavailable");
+            Toast.makeText(
+                    this,
+                    "No speech recognition service is available.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void speakMegan(String text) {
+        if (novaTts == null) {
+            novaTts = new TextToSpeech(
+                    this,
+                    result -> {
+                        if (result != TextToSpeech.ERROR) {
+                            novaTts.setLanguage(
+                                    java.util.Locale.getDefault()
+                            );
+                            novaTts.speak(
+                                    text,
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    "NOVA_M3GAN"
+                            );
+                        }
+                    }
+            );
+            return;
+        }
+
+        novaTts.speak(
+                text,
+                TextToSpeech.QUEUE_FLUSH,
+                null,
+                "NOVA_M3GAN"
+        );
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (novaTts != null) {
+            novaTts.stop();
+            novaTts.shutdown();
+            novaTts = null;
+        }
+
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onActivityResult(
+            int requestCode,
+            int resultCode,
+            Intent data
+    ) {
+        super.onActivityResult(
+                requestCode,
+                resultCode,
+                data
+        );
+
+        if (requestCode != VOICE_REQUEST ||
+                resultCode != RESULT_OK ||
+                data == null) {
+            return;
+        }
+
+        java.util.ArrayList<String> results =
+                data.getStringArrayListExtra(
+                        RecognizerIntent.EXTRA_RESULTS
+                );
+
+        if (results == null || results.isEmpty()) {
+            return;
+        }
+
+        String request = results.get(0);
+
+        MeganEngine engine = new MeganEngine(this);
+        String response = engine.respond(request);
+
+        showMeganVoice();
+
+        Toast.makeText(
+                this,
+                "M3GAN: " + response,
+                Toast.LENGTH_LONG
+        ).show();
+
+        speakMegan(response);
     }
 
     private LinearLayout bottomNavigation() {

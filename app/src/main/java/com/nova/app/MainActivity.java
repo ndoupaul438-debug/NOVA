@@ -26,6 +26,7 @@ import com.nova.app.school.NovaSchoolLearning;
 import com.nova.app.school.NovaAdaptiveEngine;
 import com.nova.app.school.CiaTeacherVoice;
 import com.nova.app.school.NovaQuestionBank;
+import com.nova.app.school.NovaScience;
 import com.nova.app.settings.NovaTheme;
 import com.nova.app.settings.ThemeRegistry;
 import com.nova.app.ui.NovaCommandCenter;
@@ -327,7 +328,9 @@ public class MainActivity extends Activity {
                 "AI School",
                 "Ethical Hacking School",
                 "Database School",
+                "🔬 Science Department",
                 "Game Development School",
+                "🔬 Science Department",
                 "Practical Labs",
                 "Competitions",
                 "Certification Centre",
@@ -346,7 +349,9 @@ public class MainActivity extends Activity {
                 "Learn artificial intelligence, machine learning, data and AI engineering.",
                 "Learn cybersecurity through authorized labs and isolated practice environments.",
                 "SQL, database design, queries, optimization and data management.",
+                "O Level Science Department: Physics, Chemistry and Biology. Physics teaches from the supplied O LEVEL PHYSICS NOTES.pdf where applicable; remaining material follows O Level content.",
                 "Learn game design, programming, physics, animation and game systems.",
+                "Physics, Chemistry and Biology. Physics teaching is linked to the supplied O-Level Physics PDFs; Chemistry and Biology use O-Level material.",
                 "Practice networking, Linux, databases, AI, IoT, hardware and cybersecurity.",
                 "Coding, AI, chess, cybersecurity, robotics, innovation and other NOVA competitions.",
                 "Earn NOVA certificates, badges, achievement awards and competition credentials.",
@@ -365,7 +370,9 @@ public class MainActivity extends Activity {
                 v -> showSchoolAI(),
                 v -> showSchoolCybersecurity(),
                 v -> showSchoolDatabase(),
+                v -> showScienceDepartment(),
                 v -> showSchoolGameDevelopment(),
+                v -> showScienceDepartment(),
                 v -> showSchoolLabs(),
                 v -> showNovaArena(),
                 v -> showCertificationCentre(),
@@ -3640,6 +3647,363 @@ public class MainActivity extends Activity {
         content.addView(button(
                 "← Back to NOVA School",
                 v -> showNovaSchool()
+        ));
+    }
+
+
+    private void showScienceDepartment() {
+        clear(
+                "🔬 Science Department",
+                "Physics • Chemistry • Biology • O-Level learning"
+        );
+
+        content.addView(card(
+                "📚 Science Progress",
+                NovaScience.completedCount(this)
+                        + " science lesson(s) completed.",
+                null
+        ));
+
+        content.addView(card(
+                "⚡ Physics",
+                "Source-based Physics teaching using the supplied O-Level Physics PDFs, followed by O-Level practice.",
+                v -> showScienceSubject("Physics")
+        ));
+
+        content.addView(card(
+                "🧪 Chemistry",
+                "O-Level Chemistry: theory, equations, practical work and adaptive practice.",
+                v -> showScienceSubject("Chemistry")
+        ));
+
+        content.addView(card(
+                "🧬 Biology",
+                "O-Level Biology: concepts, processes, diagrams, experiments and adaptive practice.",
+                v -> showScienceSubject("Biology")
+        ));
+
+        content.addView(button(
+                "← Back to NOVA School",
+                v -> showNovaSchool()
+        ));
+    }
+
+    private void showScienceSubject(String subject) {
+        clear(
+                "🔬 " + subject,
+                "NOVA School Science Department"
+        );
+
+        java.util.List<String> lessons;
+
+        if ("Physics".equals(subject)) {
+            lessons = NovaScience.physicsLessons();
+        } else if ("Chemistry".equals(subject)) {
+            lessons = NovaScience.chemistryLessons();
+        } else {
+            lessons = NovaScience.biologyLessons();
+        }
+
+        for (String topic : lessons) {
+            content.addView(card(
+                    "📖 " + topic,
+                    "Open lesson • Teach • Practice • Adaptive assessment",
+                    v -> showScienceLesson(subject, topic)
+            ));
+        }
+
+        content.addView(button(
+                "← Back to Science Department",
+                v -> showScienceDepartment()
+        ));
+    }
+
+    private void showScienceLesson(
+            String subject,
+            String topic
+    ) {
+        clear(
+                "📖 " + topic,
+                subject + " • NOVA School Science"
+        );
+
+        content.addView(card(
+                "👨‍🏫 CIA AI TEACHING",
+                NovaScience.teach(subject, topic),
+                null
+        ));
+
+        content.addView(button(
+                "🧠 Start Adaptive Practice",
+                v -> {
+                    NovaQuestionBank.Difficulty difficulty =
+                            NovaQuestionBank.Difficulty.FOUNDATION;
+
+                    String difficultyName =
+                            NovaAdaptiveEngine.recommendedDifficulty(
+                                    this,
+                                    subject,
+                                    NovaAdaptiveEngine.ActivityType.ASSIGNMENT
+                            );
+
+                    if ("Advanced".equalsIgnoreCase(difficultyName)) {
+                        difficulty =
+                                NovaQuestionBank.Difficulty.ADVANCED;
+                    } else if ("Intermediate".equalsIgnoreCase(difficultyName)) {
+                        difficulty =
+                                NovaQuestionBank.Difficulty.INTERMEDIATE;
+                    }
+
+                    java.util.List<NovaQuestionBank.Question> questions =
+                            NovaQuestionBank.createAssessment(
+                                    this,
+                                    subject,
+                                    topic,
+                                    difficulty,
+                                    3
+                            );
+
+                    showSciencePractice(
+                            subject,
+                            topic,
+                            questions,
+                            difficultyName
+                    );
+                }
+        ));
+
+        content.addView(button(
+                "✅ Mark Lesson Complete",
+                v -> {
+                    NovaScience.markCompleted(
+                            this,
+                            subject,
+                            topic
+                    );
+
+                    Toast.makeText(
+                            this,
+                            "Science lesson completed",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    showScienceSubject(subject);
+                }
+        ));
+
+        content.addView(button(
+                "← Back to " + subject,
+                v -> showScienceSubject(subject)
+        ));
+    }
+
+    private void showSciencePractice(
+            String subject,
+            String topic,
+            java.util.List<NovaQuestionBank.Question> questions,
+            String difficultyName
+    ) {
+        clear(
+                "🧠 Adaptive Science Practice",
+                subject + " • " + topic
+        );
+
+        content.addView(card(
+                "CIA AI ADAPTIVE PRACTICE",
+                "Difficulty: " + difficultyName
+                        + "\\nQuestions: " + questions.size()
+                        + "\\n\\nNOVA avoids recently attempted questions whenever unused variants are available.",
+                null
+        ));
+
+        if (questions.isEmpty()) {
+            content.addView(card(
+                    "⚠️ No Questions",
+                    "No practice questions are currently available for this topic.",
+                    null
+            ));
+
+            content.addView(button(
+                    "← Back to Lesson",
+                    v -> showScienceLesson(subject, topic)
+            ));
+
+            return;
+        }
+
+        java.util.List<EditText> answers =
+                new java.util.ArrayList<>();
+
+        for (int i = 0; i < questions.size(); i++) {
+
+            NovaQuestionBank.Question q =
+                    questions.get(i);
+
+            content.addView(text(
+                    "Question " + (i + 1),
+                    18,
+                    true
+            ));
+
+            content.addView(text(
+                    q.getQuestion(),
+                    16,
+                    false
+            ));
+
+            EditText answer =
+                    new EditText(this);
+
+            answer.setHint("Type your answer");
+            answer.setMinLines(2);
+
+            content.addView(answer);
+            answers.add(answer);
+        }
+
+        content.addView(button(
+                "✅ Submit Practice",
+                v -> {
+                    int correct = 0;
+
+                    for (int i = 0; i < questions.size(); i++) {
+
+                        NovaQuestionBank.Question q =
+                                questions.get(i);
+
+                        String student =
+                                answers.get(i)
+                                        .getText()
+                                        .toString()
+                                        .trim();
+
+                        NovaQuestionBank.recordAttempt(
+                                this,
+                                subject,
+                                topic,
+                                q.getId()
+                        );
+
+                        if (NovaQuestionBank.isAnswerCorrect(
+                                student,
+                                q.getAnswer()
+                        )) {
+                            correct++;
+                        }
+                    }
+
+                    int total = questions.size();
+
+                    int percentage =
+                            total > 0
+                                    ? (correct * 100) / total
+                                    : 0;
+
+                    NovaAdaptiveEngine.recordScore(
+                            this,
+                            subject,
+                            NovaAdaptiveEngine.ActivityType.ASSIGNMENT,
+                            percentage
+                    );
+
+                    clear(
+                            "📊 Science Practice Result",
+                            subject + " • " + topic
+                    );
+
+                    content.addView(card(
+                            percentage >= 50
+                                    ? "🎉 Good Work"
+                                    : "📚 More Reteaching Needed",
+                            "Score: " + percentage + "%\\n\\n"
+                                    + "Correct: " + correct
+                                    + " / " + total,
+                            null
+                    ));
+
+                    if (percentage < 50) {
+                        NovaAdaptiveEngine.requestReteach(
+                                this,
+                                subject,
+                                topic
+                        );
+
+                        content.addView(card(
+                                "🤖 CIA AI",
+                                "This topic has been marked for additional reteaching. Review the lesson and try another adaptive practice set.",
+                                null
+                        ));
+                    }
+
+                    content.addView(button(
+                            "📖 Review Lesson",
+                            x -> showScienceLesson(subject, topic)
+                    ));
+
+                    content.addView(button(
+                            "← Back to Science",
+                            x -> showScienceSubject(subject)
+                    ));
+                }
+        ));
+
+        content.addView(button(
+                "← Back to Lesson",
+                v -> showScienceLesson(subject, topic)
+        ));
+    }
+
+
+    private void showScienceTopic(String subject, String topic) {
+        clear(
+                "📖 " + topic,
+                subject + " • O Level Science"
+        );
+
+        content.addView(card(
+                "🎓 Teach",
+                "NOVA will teach the " + topic + " topic using the approved Science learning material. For Physics, supplied PDF material is used where the topic is covered; otherwise O Level content is used.",
+                null
+        ));
+
+        content.addView(button(
+                "🧠 Start Teaching",
+                v -> {
+                    speakCia(
+                            "Teach me the O Level " + subject
+                                    + " topic " + topic
+                                    + " step by step."
+                    );
+                }
+        ));
+
+        content.addView(card(
+                "📝 Practice",
+                "Complete adaptive practice questions for " + topic
+                        + ". NOVA selects questions according to your learning history.",
+                null
+        ));
+
+        content.addView(button(
+                "📝 Start Practice",
+                v -> showSchoolPractice(
+                        topic,
+                        new NovaSchoolLearning.Lesson(
+                                "science-" + subject.toLowerCase()
+                                        + "-" + topic.toLowerCase()
+                                                .replace(" ", "-"),
+                                topic,
+                                "O Level " + subject
+                                        + " lesson",
+                                "O Level " + subject
+                                        + " content for " + topic
+                        )
+                )
+        ));
+
+        content.addView(button(
+                "← Back to " + subject,
+                v -> showScienceSubject(subject)
         ));
     }
 

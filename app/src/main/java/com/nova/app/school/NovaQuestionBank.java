@@ -357,6 +357,329 @@ public final class NovaQuestionBank {
                     Difficulty.ADVANCED);
         }
 
+
+        /*
+         * SCIENCE DEPARTMENT
+         *
+         * Physics questions are aligned to the supplied O-Level
+         * Physics learning material. Chemistry and Biology use
+         * Ordinary Level questions.
+         */
+        else if (c.contains("physics")) {
+
+            if (t.contains("measurement")) {
+
+                add(result,
+                        "physics-measure-01",
+                        topic,
+                        "What is measurement?",
+                        "Finding the value of a physical quantity using a scientific instrument with a standard scale.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-measure-02",
+                        topic,
+                        "What is the SI unit of length?",
+                        "metre",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-measure-03",
+                        topic,
+                        "Name the SI unit of mass.",
+                        "kilogram",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-measure-04",
+                        topic,
+                        "Name two fundamental quantities used in mechanics.",
+                        "Length and mass.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-measure-05",
+                        topic,
+                        "Why are standard units important in measurement?",
+                        "They provide a common basis for accurate and consistent measurements.",
+                        Difficulty.INTERMEDIATE);
+            }
+
+            else if (t.contains("momentum")
+                    || t.contains("collision")) {
+
+                add(result,
+                        "physics-momentum-01",
+                        topic,
+                        "What is linear momentum?",
+                        "The product of mass and velocity.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-momentum-02",
+                        topic,
+                        "What is impulse?",
+                        "The change in momentum of a body.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-momentum-03",
+                        topic,
+                        "State the principle of conservation of momentum.",
+                        "Total momentum remains constant provided no external force acts.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-momentum-04",
+                        topic,
+                        "A 20 kg body moves at 5 m/s. Calculate its momentum.",
+                        "100 kgm/s.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-momentum-05",
+                        topic,
+                        "What quantities are multiplied to calculate momentum?",
+                        "Mass and velocity.",
+                        Difficulty.FOUNDATION);
+            }
+
+            else if (t.contains("heat")
+                    || t.contains("thermometry")
+                    || t.contains("thermal")) {
+
+                add(result,
+                        "physics-heat-01",
+                        topic,
+                        "What is temperature?",
+                        "The degree of hotness or coldness of a body.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-heat-02",
+                        topic,
+                        "What is the SI unit of temperature?",
+                        "kelvin",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-heat-03",
+                        topic,
+                        "Name two common temperature scales.",
+                        "Celsius and Fahrenheit.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-heat-04",
+                        topic,
+                        "What is a thermometric property?",
+                        "A property of a substance that changes continuously with temperature and can be used for temperature measurement.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-heat-05",
+                        topic,
+                        "What is the Kelvin temperature corresponding to 0 degrees Celsius?",
+                        "273 K.",
+                        Difficulty.INTERMEDIATE);
+            }
+
+            else if (t.contains("refraction")
+                    || t.contains("light")
+                    || t.contains("prism")) {
+
+                add(result,
+                        "physics-light-01",
+                        topic,
+                        "What is refraction?",
+                        "The change in direction of light when it passes from one medium to another.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-light-02",
+                        topic,
+                        "What law is used to calculate refraction at a boundary?",
+                        "Snell's law.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-light-03",
+                        topic,
+                        "What is critical angle?",
+                        "The angle of incidence in the denser medium for which the angle of refraction is 90 degrees.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-light-04",
+                        topic,
+                        "When does total internal reflection occur?",
+                        "When light travels from a denser to a less dense medium and the angle of incidence is greater than the critical angle.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-light-05",
+                        topic,
+                        "Name one application of total internal reflection.",
+                        "Optical fibres.",
+                        Difficulty.ADVANCED);
+            }
+
+            else if (t.contains("radio")
+                    || t.contains("nuclear")
+                    || t.contains("fission")
+                    || t.contains("fusion")) {
+
+                add(result,
+                        "physics-nuclear-01",
+                        topic,
+                        "What is radioactivity?",
+                        "The spontaneous disintegration of an unstable nucleus accompanied by radiation.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-nuclear-02",
+                        topic,
+                        "Name the three main types of nuclear radiation.",
+                        "Alpha, beta and gamma radiation.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-nuclear-03",
+                        topic,
+                        "What is nuclear fission?",
+                        "The splitting of a heavy nucleus into lighter nuclei with the release of energy.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-nuclear-04",
+                        topic,
+                        "What is nuclear fusion?",
+                        "The combining of light nuclei to form a heavier nucleus with the release of energy.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-nuclear-05",
+                        topic,
+                        "State one use of nuclear fission.",
+                        "Generating electricity.",
+                        Difficulty.ADVANCED);
+            }
+
+            else {
+
+                add(result,
+                        "physics-general-01",
+                        topic,
+                        "What is Physics?",
+                        "The study of matter, energy and their interactions.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-general-02",
+                        topic,
+                        "Name one branch of Physics.",
+                        "Mechanics.",
+                        Difficulty.FOUNDATION);
+
+                add(result,
+                        "physics-general-03",
+                        topic,
+                        "Why are experiments important in Physics?",
+                        "They help develop observation, measurement and logical reasoning skills.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-general-04",
+                        topic,
+                        "Give one practical application of Physics.",
+                        "Physics is applied in areas such as medicine, engineering and technology.",
+                        Difficulty.INTERMEDIATE);
+
+                add(result,
+                        "physics-general-05",
+                        topic,
+                        "Why is Physics important to technology?",
+                        "Its principles are applied to design and improve technological systems.",
+                        Difficulty.ADVANCED);
+            }
+        }
+
+        else if (c.contains("chemistry")) {
+
+            add(result,
+                    "chemistry-01",
+                    topic,
+                    "What is an element?",
+                    "A substance made of only one type of atom.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "chemistry-02",
+                    topic,
+                    "What is a compound?",
+                    "A substance formed when elements chemically combine in fixed proportions.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "chemistry-03",
+                    topic,
+                    "What is a mixture?",
+                    "Two or more substances physically combined without chemical bonding.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "chemistry-04",
+                    topic,
+                    "What is an acid?",
+                    "A substance that produces hydrogen ions in aqueous solution.",
+                    Difficulty.INTERMEDIATE);
+
+            add(result,
+                    "chemistry-05",
+                    topic,
+                    "Why are chemical equations balanced?",
+                    "To obey conservation of atoms and mass.",
+                    Difficulty.INTERMEDIATE);
+        }
+
+        else if (c.contains("biology")) {
+
+            add(result,
+                    "biology-01",
+                    topic,
+                    "What is a cell?",
+                    "The basic structural and functional unit of a living organism.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "biology-02",
+                    topic,
+                    "What is photosynthesis?",
+                    "The process by which green plants make food using light energy.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "biology-03",
+                    topic,
+                    "What is respiration?",
+                    "The chemical process by which cells release energy from food.",
+                    Difficulty.FOUNDATION);
+
+            add(result,
+                    "biology-04",
+                    topic,
+                    "Why is the circulatory system important?",
+                    "It transports substances such as oxygen, nutrients and wastes around the body.",
+                    Difficulty.INTERMEDIATE);
+
+            add(result,
+                    "biology-05",
+                    topic,
+                    "What is a habitat?",
+                    "The place where an organism lives.",
+                    Difficulty.INTERMEDIATE);
+        }
+
         /*
          * GENERIC FALLBACK
          *
